@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from connection import get_db
 
-RAW_DATA_DIR = os.path.join("data", "raw")
+RAW_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
 
 
 def parse_iso_date(date_str):
@@ -41,11 +41,39 @@ def build_repository_doc(raw):
     }
 
 
+def bucket_commits_from_stats(contributor_stats):
+    """
+    Converts GitHub's weekly per-contributor stats into monthly totals.
+    This is the reliable source for commits_count and active_contributors_count --
+    it covers a repo's full history and isn't limited by our pagination settings.
+    Returns: { "2026-01": {"commits_count": X, "active_contributors": {...}}, ... }
+    """
+    buckets = defaultdict(lambda: {"commits_count": 0, "active_contributors": set()})
+
+    for contributor in contributor_stats or []:
+        author_login = (contributor.get("author") or {}).get("login") or "unknown"
+        for week in contributor.get("weeks", []):
+            commits_in_week = week.get("c", 0)
+            if commits_in_week <= 0:
+                continue
+            week_start = datetime.fromtimestamp(week["w"], tz=timezone.utc)
+            mk = month_key(week_start)
+            buckets[mk]["commits_count"] += commits_in_week
+            buckets[mk]["active_contributors"].add(author_login)
+
+    return buckets
+
+
 def bucket_monthly_activity(raw):
     """
-    Groups commits, PRs, issues, and releases by month.
-    Returns: { "2026-07": {commits_count, prs_opened, ...}, "2026-08": {...}, ... }
+    Groups activity by month. Commits and active contributors come from the
+    reliable /stats/contributors data (full history, not pagination-limited).
+    PRs, issues, and releases still come from the paginated lists collected
+    earlier.
     """
+    # Start with reliable commit/contributor buckets
+    stats_buckets = bucket_commits_from_stats(raw.get("contributor_stats", []))
+
     buckets = defaultdict(lambda: {
         "commits_count": 0,
         "active_contributors": set(),
@@ -56,18 +84,10 @@ def bucket_monthly_activity(raw):
         "releases_count": 0,
     })
 
-    # Commits
-    for commit in raw.get("commits", []):
-        commit_info = commit.get("commit", {})
-        author_date = parse_iso_date(commit_info.get("author", {}).get("date"))
-        mk = month_key(author_date)
-        if not mk:
-            continue
-        buckets[mk]["commits_count"] += 1
-
-        author_login = (commit.get("author") or {}).get("login")
-        author_name = commit_info.get("author", {}).get("name")
-        buckets[mk]["active_contributors"].add(author_login or author_name or "unknown")
+    # Merge in the reliable commit/contributor data
+    for mk, data in stats_buckets.items():
+        buckets[mk]["commits_count"] = data["commits_count"]
+        buckets[mk]["active_contributors"] = set(data["active_contributors"])
 
     # Pull requests
     for pr in raw.get("pull_requests", []):
@@ -160,4 +180,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
