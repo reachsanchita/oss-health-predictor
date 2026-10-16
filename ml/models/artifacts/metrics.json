@@ -1,0 +1,22 @@
+{
+  "model_name": "Random Forest (tuned)",
+  "train_windows": 3385,
+  "test_windows": 913,
+  "test_metrics": {
+    "macro_f1": 0.5826,
+    "balanced_acc": 0.604,
+    "accuracy": 0.6068,
+    "f1_abandoned": 0.5501,
+    "f1_at_risk": 0.6857
+  },
+  "grouped_cv_macro_f1": [
+    0.5294,
+    0.0435
+  ],
+  "classes": [
+    "Healthy",
+    "Declining",
+    "Abandoned"
+  ],
+  "n_features": 52
+}

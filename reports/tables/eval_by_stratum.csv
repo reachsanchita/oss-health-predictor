@@ -1,0 +1,16 @@
+by,group,windows,macro_f1
+language,C++,106,0.5724
+language,Go,129,0.4459
+language,Java,39,0.7913
+language,JavaScript,41,0.5185
+language,Python,123,0.5362
+language,Rust,145,0.6123
+language,TypeScript,176,0.5502
+language,original5,154,0.6157
+status_stratum,active,495,0.5628
+status_stratum,archived,112,0.6024
+status_stratum,original5,154,0.6157
+status_stratum,stale,124,0.4806
+stars_band,200-2k,198,0.4383
+stars_band,2k-20k,225,0.6235
+stars_band,20k+,336,0.5955
