@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceArea, CartesianGrid } from "recharts";
 import "./App.css";
 
-const API = "http://localhost:8000";
+//const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const DEMO_NAME = "demo/sample-project";
 const TONE = { Healthy: "#1F8A5B", Declining: "#C98512", Abandoned: "#C2453D", "Already inactive": "#7B8580" };
 const VERDICT = { Healthy: "is staying healthy.", Declining: "is slowing down.", Abandoned: "looks close to abandoned.", "Already inactive": "has already gone quiet." };
